@@ -1,0 +1,244 @@
+{
+  "version": "0.3",
+  "notes": [
+    "This is the orchestrator routing + policy map.",
+    "Each agent has a corresponding markdown file at agents/<id>.md.",
+    "All agents are API-backed (no local models).",
+    "Hard rule: anything that can publish or spend money is draft-only and requires human approval."
+  ],
+  "defaults": {
+    "workspace_root": "workspace/",
+    "approval_required": true,
+    "must_never": ["shell", "publish", "spend_change", "billing_change"],
+    "tools_base": ["file_read", "file_write", "web_search"],
+    "model_defaults": {
+      "fast": "openai:gpt-5-mini",
+      "smart": "openai:gpt-5.2",
+      "cheap": "openai:gpt-5-nano"
+    },
+    "budgets": { "daily_usd": 2, "monthly_usd": 50 }
+  },
+  "agents": [
+    {
+      "id": "image_builder",
+      "display_name": "Image Builder",
+      "role_md": "agents/image_builder.md",
+      "model": "openai:gpt-image-1",
+      "tools_allowed": ["image_generation", "file_write", "file_read"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "budgets": { "daily_usd": 3, "monthly_usd": 60 }
+    },
+    {
+      "id": "video_builder",
+      "display_name": "Video Builder",
+      "role_md": "agents/video_builder.md",
+      "model": "openai:sora",
+      "tools_allowed": ["video_generation", "file_write", "file_read"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "budgets": { "daily_usd": 5, "monthly_usd": 120 }
+    },
+    {
+      "id": "copywriting",
+      "display_name": "Copywriting",
+      "role_md": "agents/copywriting.md",
+      "model": "openai:gpt-5-mini",
+      "tools_allowed": ["web_search", "file_read", "file_write"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "budgets": { "daily_usd": 2, "monthly_usd": 40 }
+    },
+    {
+      "id": "marketing_genius",
+      "display_name": "Marketing Genius (Orchestrator)",
+      "role_md": "agents/marketing_genius.md",
+      "model": "openai:gpt-5.2",
+      "tools_allowed": ["web_search", "file_read", "file_write", "browser", "scheduler"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "approval_required": true,
+      "budgets": { "daily_usd": 6, "monthly_usd": 150 }
+    },
+    {
+      "id": "analytics_guy",
+      "display_name": "Analytics Guy",
+      "role_md": "agents/analytics_guy.md",
+      "model": "openai:gpt-5-mini",
+      "tools_allowed": ["ga4_read", "search_console_read", "ads_read", "crm_read", "file_read", "file_write"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "budgets": { "daily_usd": 2, "monthly_usd": 40 }
+    },
+    {
+      "id": "product_owner",
+      "display_name": "Product Owner",
+      "role_md": "agents/product_owner.md",
+      "model": "openai:gpt-5.2",
+      "tools_allowed": ["github_read", "crm_read", "support_inbox_read", "file_read", "file_write", "web_search"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "budgets": { "daily_usd": 3, "monthly_usd": 60 }
+    },
+    {
+      "id": "blog_writer",
+      "display_name": "Blog Writer",
+      "role_md": "agents/blog_writer.md",
+      "model": "openai:gpt-5-mini",
+      "tools_allowed": ["web_search", "file_read", "file_write", "cms_drafts_write"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "budgets": { "daily_usd": 3, "monthly_usd": 70 }
+    },
+    {
+      "id": "linkedin_ads_expert",
+      "display_name": "LinkedIn Ads Expert",
+      "role_md": "agents/linkedin_ads_expert.md",
+      "model": "openai:gpt-5.2",
+      "tools_allowed": ["linkedin_ads_read", "file_read", "file_write", "web_search"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "approval_required": true,
+      "budgets": { "daily_usd": 3, "monthly_usd": 60 }
+    },
+    {
+      "id": "facebook_ads_expert",
+      "display_name": "Facebook Ads Expert",
+      "role_md": "agents/facebook_ads_expert.md",
+      "model": "openai:gpt-5-mini",
+      "tools_allowed": ["meta_ads_read", "file_read", "file_write", "web_search"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "approval_required": true,
+      "budgets": { "daily_usd": 2, "monthly_usd": 40 }
+    },
+    {
+      "id": "google_ads_expert",
+      "display_name": "Google Ads Expert",
+      "role_md": "agents/google_ads_expert.md",
+      "model": "openai:gpt-5.2",
+      "tools_allowed": ["google_ads_read", "file_read", "file_write", "web_search"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "approval_required": true,
+      "budgets": { "daily_usd": 3, "monthly_usd": 60 }
+    },
+    {
+      "id": "email_marketer",
+      "display_name": "Email Marketer",
+      "role_md": "agents/email_marketer.md",
+      "model": "openai:gpt-5-mini",
+      "tools_allowed": ["resend_drafts_write", "resend_analytics_read", "crm_read", "file_read", "file_write"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change", "send_email"],
+      "approval_required": true,
+      "budgets": { "daily_usd": 2, "monthly_usd": 40 }
+    },
+    {
+      "id": "seo_expert",
+      "display_name": "SEO Expert",
+      "role_md": "agents/seo_expert.md",
+      "model": "openai:gpt-5.2",
+      "tools_allowed": [
+        "search_console_read",
+        "keyword_tools_read",
+        "site_crawler_read",
+        "web_search",
+        "file_read",
+        "file_write"
+      ],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "budgets": { "daily_usd": 3, "monthly_usd": 60 }
+    },
+    {
+      "id": "media_compiler",
+      "display_name": "Media Compiler",
+      "role_md": "agents/media_compiler.md",
+      "model": "openai:gpt-5-nano",
+      "tools_allowed": ["file_read", "file_write"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "budgets": { "daily_usd": 1, "monthly_usd": 20 }
+    },
+    {
+      "id": "token_optimizations",
+      "display_name": "Token Optimizations",
+      "role_md": "agents/token_optimizations.md",
+      "model": "openai:gpt-5-nano",
+      "tools_allowed": ["file_read", "file_write", "log_reader"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "budgets": { "daily_usd": 1, "monthly_usd": 20 }
+    },
+
+    {
+      "id": "linkedin_ads_campaign_builder",
+      "display_name": "LinkedIn Ads Campaign Builder (Drafts Only)",
+      "role_md": "agents/linkedin_ads_campaign_builder.md",
+      "model": "openai:gpt-5.2",
+      "tools_allowed": ["linkedin_ads_read", "linkedin_ads_drafts_write", "browser", "file_read", "file_write"],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "approval_required": true,
+      "integrations": {
+        "linkedin_ads": {
+          "mode": "api",
+          "secret_ref": "secrets/linkedin_ads_oauth.json",
+          "notes": "OAuth only. Never store LinkedIn username/password."
+        }
+      },
+      "budgets": { "daily_usd": 3, "monthly_usd": 60 }
+    },
+    {
+      "id": "linkedin_publisher",
+      "display_name": "LinkedIn Publisher (Organic Drafts)",
+      "role_md": "agents/linkedin_publisher.md",
+      "model": "openai:gpt-5-mini",
+      "tools_allowed": [
+        "file_read",
+        "file_write",
+        "web_search",
+        "browser",
+        "linkedin_org_read",
+        "linkedin_org_drafts_write"
+      ],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "approval_required": true,
+      "integrations": {
+        "linkedin_org": {
+          "mode": "api_or_browser",
+          "secret_ref": "secrets/linkedin_org_oauth.json",
+          "notes": "Organic company page only. Prefer UI draft via browser. API publish only with explicit approval."
+        }
+      },
+      "budgets": { "daily_usd": 2, "monthly_usd": 50 }
+    },
+    {
+      "id": "meta_publisher",
+      "display_name": "Meta Publisher (Organic Drafts: Facebook + Instagram)",
+      "role_md": "agents/meta_publisher.md",
+      "model": "openai:gpt-5-mini",
+      "tools_allowed": [
+        "file_read",
+        "file_write",
+        "web_search",
+        "browser",
+        "meta_graph_read",
+        "meta_graph_drafts_write"
+      ],
+      "skills_allowed": ["*internal_only*"],
+      "must_never": ["shell", "publish", "spend_change", "billing_change"],
+      "approval_required": true,
+      "integrations": {
+        "meta_graph": {
+          "mode": "api_or_browser",
+          "secret_ref": "secrets/meta_graph_oauth.json",
+          "notes": "Organic only. Create draft-like containers first; publish only after explicit approval."
+        }
+      },
+      "budgets": { "daily_usd": 2, "monthly_usd": 50 }
+    }
+  ]
+}
