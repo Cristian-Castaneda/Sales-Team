@@ -175,3 +175,7 @@ Primary consumers:
 
 Secondary:
 - marketing_genius (selects best angle + caption)
+
+## Sources of video rules
+- For linkedin ads here is the page with the instructions https://www.linkedin.com/help/lms/answer/a424737
+
