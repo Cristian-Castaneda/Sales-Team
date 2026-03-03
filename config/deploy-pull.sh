@@ -3,15 +3,15 @@ set -e
 
 cd /opt/agents/Sales-Team
 
-# Unlock repo folder temporarily
-chmod -R u+w .
+# Unlock repo folder (chattr +i blocks even root)
+chattr -R -i /opt/agents/Sales-Team
 
 # Pull latest changes
 git pull
 
 # Lock repo folder again
-chmod -R a-w .
-chmod -R u+w .git
+chattr -R +i /opt/agents/Sales-Team
+chattr -R -i /opt/agents/Sales-Team/.git
 
 # Copy files to active locations
 cp config/openclaw.json /root/.openclaw/openclaw.json

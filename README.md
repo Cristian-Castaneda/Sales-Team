@@ -208,8 +208,8 @@ chmod +x /usr/local/bin/deploy-pull
 
 Then lock the repo folder so files can only be updated through `git pull`, never by accidental `cp` into it:
 ```bash
-chmod -R a-w /opt/agents/Sales-Team
-chmod -R u+w /opt/agents/Sales-Team/.git
+chattr -R +i /opt/agents/Sales-Team
+chattr -R -i /opt/agents/Sales-Team/.git
 ```
 
 From now on, whenever you push changes from your Mac, on the VPS just run:
