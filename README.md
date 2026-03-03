@@ -377,6 +377,7 @@ If you use Termius as your SSH client, you can set up a persistent port forwardi
 5. Save and toggle it on
 
 Then open `http://127.0.0.1:18789` in your Mac browser. The tunnel stays active as long as the rule is on — no terminal commands needed.
+
 ## 12) Set up WhatsApp channel
 
 The WhatsApp channel is already enabled in the `config/openclaw.json` we deployed in step 7. After starting the containers, pair the WhatsApp account using the OpenClaw onboarding/pairing flow.
