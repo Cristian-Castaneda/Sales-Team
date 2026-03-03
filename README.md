@@ -198,7 +198,26 @@ cd Sales-Team
 From this point on, all Docker and config files come from this repo.
 
 ---
+### Install the deploy script and lock the repo folder
 
+The repo includes a deploy script that safely pulls changes and copies files to the right places. Install it as a system command:
+```bash
+cp /opt/agents/Sales-Team/config/deploy-pull.sh /usr/local/bin/deploy-pull
+chmod +x /usr/local/bin/deploy-pull
+```
+
+Then lock the repo folder so files can only be updated through `git pull`, never by accidental `cp` into it:
+```bash
+chmod -R a-w /opt/agents/Sales-Team
+chmod -R u+w /opt/agents/Sales-Team/.git
+```
+
+From now on, whenever you push changes from your Mac, on the VPS just run:
+```bash
+deploy-pull
+```
+
+This unlocks the repo, pulls, copies all files to their active locations, and locks it again.
 ## 5) Clone OpenClaw
 
 ```bash
