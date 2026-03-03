@@ -214,6 +214,7 @@ chattr -R -i /opt/agents/Sales-Team/.git
 
 From now on, whenever you push changes from your Mac, on the VPS just run:
 ```bash
+
 deploy-pull
 ```
 
