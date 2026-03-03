@@ -4,4 +4,4 @@ FROM openclaw:local
 RUN curl -fsSL https://bun.sh/install | bash
 
 # Make Bun available in PATH for all sessions
-ENV PATH="/root/.bun/bin:${PATH}"
+ENV PATH="/home/node/.bun/bin:${PATH}"
