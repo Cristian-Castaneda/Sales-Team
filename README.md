@@ -40,12 +40,12 @@ Sales-Team/
 ## 1) SSH into the VPS from your Mac
 
 ```bash
-ssh root@YOUR_SERVER_IP
+ssh root@72.61.58.110
 ```
 
 If you already created a non-root user:
 ```bash
-ssh YOUR_USER@YOUR_SERVER_IP
+ssh YOUR_USER@72.61.58.110
 ```
 
 ---
@@ -96,7 +96,7 @@ gh ssh-key add ~/.ssh/openclaw_vps_key.pub --title "OpenClaw VPS"
 ### 3c) Copy the private key to the VPS (from your Mac)
 
 ```bash
-scp ~/.ssh/openclaw_vps_key root@YOUR_SERVER_IP:/root/.ssh/github_agent_key
+scp ~/.ssh/openclaw_vps_key root@72.61.58.110:/root/.ssh/github_agent_key
 ```
 
 ### 3d) Set up SSH on the VPS
@@ -349,7 +349,7 @@ At this point:
 Because the port is only on localhost on the VPS, use an SSH tunnel from your Mac:
 
 ```bash
-ssh -L 18789:127.0.0.1:18789 root@YOUR_SERVER_IP
+ssh -L 18789:127.0.0.1:18789 root@72.61.58.110
 ```
 
 Then open in your Mac browser:

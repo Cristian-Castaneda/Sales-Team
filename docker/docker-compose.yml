@@ -1,0 +1,30 @@
+services:
+  openclaw:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - /root/.openclaw:/root/.openclaw
+    ports:
+      - "127.0.0.1:18789:18789"
+      - "127.0.0.1:18790:18790"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    depends_on:
+      - browser
+
+  browser:
+    image: ghcr.io/browserless/chromium:latest
+    restart: unless-stopped
+    shm_size: "1gb"
+    ports:
+      - "127.0.0.1:3000:3000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
