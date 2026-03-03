@@ -13,6 +13,59 @@ This is the minimal step-by-step blueprint to get a **private OpenClaw server** 
 - All config and Docker files versioned in the **Sales-Team** repo and pulled to the VPS during setup
 
 ---
+## VPS structure
+```
+/ (VPS root)
+|
++-- root/                                    <- Root user home
+|   +-- .ssh/                                <- SSH credentials
+|   |   +-- github_agent_key                     Private key for GitHub
+|   |   +-- config                               Maps github.com to the key
+|   |
+|   +-- .openclaw/                           <- OpenClaw runtime (created by docker-setup.sh)
+|       +-- openclaw.json                        Active config (copied from repo)
+|       +-- skills/                              Active skills (copied from repo)
+|           +-- skill-builder/
+|           |   +-- SKILL.md
+|           |   +-- scripts/
+|           +-- linkedin-poster/
+|               +-- SKILL.md
+|               +-- scripts/
+|
++-- opt/                                     <- Third-party software
+    +-- openclaw/                             <- OpenClaw source
+    |   +-- docker-setup.sh                      Run once to initialize
+    |   +-- ...
+    |
+    +-- agents/                              <- Your project repos
+    |   +-- Sales-Team/                      <- YOUR REPO (source of truth)
+    |       +-- README.md                        This blueprint / setup guide
+    |       +-- .gitignore                       Ignores .env, node_modules, keys
+    |       +-- docker/
+    |       |   +-- Dockerfile                   Extends openclaw:local + Bun
+    |       |   +-- docker-compose.yml           2 containers: openclaw + browser
+    |       +-- config/
+    |       |   +-- openclaw.json                Models, browser, channels
+    |       +-- skills/
+    |       |   +-- skill-builder/               SKILL.md + scripts/
+    |       |   +-- linkedin-poster/             SKILL.md + scripts/
+    |       +-- Agents/
+    |       |   +-- agents.json
+    |       |   +-- marketing_genious.md
+    |       |   +-- product_owner.md
+    |       |   +-- copywriting.md
+    |       |   +-- meta_publisher.md
+    |       |   +-- linkedin_publisher.md
+    |       |   +-- Image_builder.md
+    |       |   +-- video_builder.md
+    |       +-- workflows/
+    |           +-- daily_5_posts.md
+    |
+    +-- openclaw-deploy/                     <- Live deployment (Docker runs here)
+        +-- .env                                 API keys and secrets (NEVER in repo)
+        +-- Dockerfile                           Copied from Sales-Team/docker/
+        +-- docker-compose.yml                   Copied from Sales-Team/docker/
+```
 
 ## Repo structure (Sales-Team)
 
@@ -165,8 +218,22 @@ OpenClaw supports Docker setup and uses the Gateway as the control plane.
 cd /opt/openclaw
 ./docker-setup.sh
 ```
+The setup will ask you a series of questions:
 
-This creates the base OpenClaw config under:
+1. **"Continue?"** → Yes
+2. **"Onboarding mode"** → Manual (we control everything through the repo, not auto-setup)
+3. **"Workspace directory"** → Change to `/root/.openclaw/workspace` (the default `/home/node/.openclaw/workspace` is wrong when running as root)
+4. **"Model/auth provider"** → OpenRouter (this sets up initial auth so the gateway works immediately)
+    - It will ask for your OpenRouter API key → Paste it
+    - Select model `openrouter/meta-llama/llama-3.3-70b-instruct`
+5. **"Gateway bind"** → Loopback (127.0.0.1) (keeps the gateway private, access via SSH tunnel)
+6. **"Gateway auth"** → Token (it will generate a token — save this as your OPENCLAW_GATEWAY_TOKEN for the .env file)
+7. **"Tailscale exposure"** → Off
+8. **"Configure chat channels now?"** → No, we will do it later.
+
+
+
+After completing the setup, the base OpenClaw config is created under:
 - `~/.openclaw/`
 
 OpenClaw's config file is typically:
@@ -186,44 +253,6 @@ cp /opt/agents/Sales-Team/config/openclaw.json ~/.openclaw/openclaw.json
 
 The repo version of `config/openclaw.json` should contain the full configuration (models, browser, channels). See the reference below for what goes inside it.
 
-### Reference: config/openclaw.json
-
-This is what the file in the repo should look like:
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "model": {
-        "primary": "openrouter/meta-llama/llama-3.3-70b-instruct",
-        "fallbacks": [
-          "anthropic/claude-sonnet-4-6",
-          "openai/gpt-5.1-codex"
-        ]
-      }
-    }
-  },
-  "env": {
-    "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}",
-    "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
-    "OPENAI_API_KEY": "${OPENAI_API_KEY}"
-  },
-  "browser": {
-    "enabled": true,
-    "profiles": {
-      "default": {
-        "cdpUrl": "http://browser:3000"
-      }
-    }
-  },
-  "channels": {
-    "whatsapp": {
-      "enabled": true,
-      "dmPolicy": "pairing"
-    }
-  }
-}
-```
 
 > **Note on browser cdpUrl**: We use `http://browser:3000` instead of `http://127.0.0.1:3000` because inside Docker Compose, containers talk to each other by service name. The `browser` service name resolves to the headless Chrome container automatically.
 
@@ -264,56 +293,7 @@ cp /opt/agents/Sales-Team/docker/Dockerfile /opt/openclaw-deploy/Dockerfile
 cp /opt/agents/Sales-Team/docker/docker-compose.yml /opt/openclaw-deploy/docker-compose.yml
 ```
 
-### Reference: docker/Dockerfile
 
-This Dockerfile extends the base OpenClaw image and adds **Bun** — a fast JavaScript/TypeScript runtime. This makes Bun permanently available inside the OpenClaw container so TypeScript skills run natively without a compile step.
-
-```dockerfile
-FROM openclaw:local
-
-# Install Bun (single binary, runs TypeScript natively)
-RUN curl -fsSL https://bun.sh/install | bash
-
-# Make Bun available in PATH for all sessions
-ENV PATH="/root/.bun/bin:${PATH}"
-```
-
-### Reference: docker/docker-compose.yml
-
-This is what the file in the repo should look like:
-
-```yaml
-services:
-  openclaw:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    env_file:
-      - .env
-    volumes:
-      - /root/.openclaw:/root/.openclaw
-    ports:
-      - "127.0.0.1:18789:18789"
-      - "127.0.0.1:18790:18790"
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    depends_on:
-      - browser
-
-  browser:
-    image: ghcr.io/browserless/chromium:latest
-    restart: unless-stopped
-    shm_size: "1gb"
-    ports:
-      - "127.0.0.1:3000:3000"
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-```
 
 > **Note**: The `openclaw` service now uses `build` instead of `image`. Docker Compose will build the custom image from `docker/Dockerfile` on the first `docker compose up --build`. The Dockerfile extends `openclaw:local` and bakes in Bun, so TypeScript is always available.
 
@@ -361,6 +341,17 @@ http://127.0.0.1:18789
 This keeps everything private.
 
 ---
+### Alternative: Use Termius port forwarding (recommended)
+
+If you use Termius as your SSH client, you can set up a persistent port forwarding rule instead of running the SSH tunnel command manually:
+
+1. Open Termius
+2. Go to **Port Forwarding** in the sidebar
+3. Click **+ New Rule**
+4. Set: Type = Local, Local port = `18789`, Remote host = `127.0.0.1`, Remote port = `18789`, Via host = your OpenClaw VPS
+5. Save and toggle it on
+
+Then open `http://127.0.0.1:18789` in your Mac browser. The tunnel stays active as long as the rule is on — no terminal commands needed.
 
 ## 12) Set up WhatsApp channel
 
