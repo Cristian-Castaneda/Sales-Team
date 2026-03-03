@@ -214,7 +214,6 @@ chattr -R -i /opt/agents/Sales-Team/.git
 
 From now on, whenever you push changes from your Mac, on the VPS just run:
 ```bash
-
 deploy-pull
 ```
 
@@ -265,10 +264,11 @@ The Gateway default port is commonly `18789`.
 
 ## 7) Deploy the OpenClaw config from the repo
 
-Instead of manually editing `~/.openclaw/openclaw.json`, we copy the versioned config from the repo:
+Instead of manually editing `~/.openclaw/openclaw.json`, we copy the versioned config from the repo, then make the directory writable:
 
 ```bash
 cp /opt/agents/Sales-Team/config/openclaw.json ~/.openclaw/openclaw.json
+chmod -R 777 ~/.openclaw/
 ```
 
 The repo version of `config/openclaw.json` should contain the full configuration (models, browser, channels). See the reference below for what goes inside it.
@@ -367,12 +367,16 @@ If you use Termius as your SSH client, you can set up a persistent port forwardi
 
 1. Open Termius
 2. Go to **Port Forwarding** in the sidebar
-3. Click **+ New Rule**
-4. Set: Type = Local, Local port = `18789`, Remote host = `127.0.0.1`, Remote port = `18789`, Via host = your OpenClaw VPS
+3. Click **New Forwarding**
+4. Fill in:
+   - **Local port**: `18789`
+   - **Bind address**: `127.0.0.1`
+   - **Intermediate host**: select your OpenClaw VPS host
+   - **Destination address**: `127.0.0.1`
+   - **Destination port**: `18789`
 5. Save and toggle it on
 
 Then open `http://127.0.0.1:18789` in your Mac browser. The tunnel stays active as long as the rule is on — no terminal commands needed.
-
 ## 12) Set up WhatsApp channel
 
 The WhatsApp channel is already enabled in the `config/openclaw.json` we deployed in step 7. After starting the containers, pair the WhatsApp account using the OpenClaw onboarding/pairing flow.
@@ -468,6 +472,9 @@ git pull
 
 # Redeploy config
 cp config/openclaw.json ~/.openclaw/openclaw.json
+
+# make the directory writable
+chmod -R 777 ~/.openclaw/
 
 # Redeploy Docker files
 cp docker/Dockerfile /opt/openclaw-deploy/Dockerfile

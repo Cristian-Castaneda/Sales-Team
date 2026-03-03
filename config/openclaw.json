@@ -1,4 +1,9 @@
 {
+  "gateway": {
+    "controlUi": {
+      "enabled": true
+    }
+  },
   "agents": {
     "defaults": {
       "model": {
