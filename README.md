@@ -264,11 +264,11 @@ The Gateway default port is commonly `18789`.
 
 ## 7) Deploy the OpenClaw config from the repo
 
-Instead of manually editing `~/.openclaw/openclaw.json`, we copy the versioned config from the repo, then make the directory writable:
+Instead of manually editing `~/.openclaw/openclaw.json`, we copy the versioned config from the repo:
 
 ```bash
 cp /opt/agents/Sales-Team/config/openclaw.json ~/.openclaw/openclaw.json
-chmod -R 777 ~/.openclaw/
+
 ```
 
 The repo version of `config/openclaw.json` should contain the full configuration (models, browser, channels). See the reference below for what goes inside it.
@@ -316,7 +316,7 @@ cp /opt/agents/Sales-Team/docker/docker-compose.yml /opt/openclaw-deploy/docker-
 
 
 > **Note**: The `openclaw` service now uses `build` instead of `image`. Docker Compose will build the custom image from `docker/Dockerfile` on the first `docker compose up --build`. The Dockerfile extends `openclaw:local` and bakes in Bun, so TypeScript is always available.
-
+> **Note**: The openclaw service runs as user: "0:0" (root inside the container) to prevent permission errors when OpenClaw creates files in the mounted ~/.openclaw/ directory.
 ### About the two containers
 
 | Container | Image | What it does |
@@ -410,7 +410,6 @@ Skills are loaded from `~/.openclaw/skills/`. To install a skill from the repo, 
 # Copy the skill-builder skill (and any future skills) from the repo
 mkdir -p ~/.openclaw/skills/
 cp -r /opt/agents/Sales-Team/skills/* ~/.openclaw/skills/
-chmod -R 777 ~/.openclaw/skills/
 ```
 
 After copying, verify the skill is visible:
@@ -475,9 +474,6 @@ git pull
 
 # Redeploy config
 cp config/openclaw.json ~/.openclaw/openclaw.json
-
-# make the directory writable
-chmod -R 777 ~/.openclaw/
 
 # Redeploy Docker files
 cp docker/Dockerfile /opt/openclaw-deploy/Dockerfile
