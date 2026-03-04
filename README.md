@@ -408,7 +408,9 @@ Skills are loaded from `~/.openclaw/skills/`. To install a skill from the repo, 
 
 ```bash
 # Copy the skill-builder skill (and any future skills) from the repo
+mkdir -p ~/.openclaw/skills/
 cp -r /opt/agents/Sales-Team/skills/* ~/.openclaw/skills/
+chmod -R 777 ~/.openclaw/skills/
 ```
 
 After copying, verify the skill is visible:
