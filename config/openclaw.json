@@ -30,7 +30,7 @@
   "channels": {
     "whatsapp": {
       "enabled": true,
-      "dmPolicy": "pairing",
+      "dmPolicy": "allowlist",
       "allowFrom": ["+56954130924"]
     }
   }
