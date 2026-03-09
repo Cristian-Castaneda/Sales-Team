@@ -218,6 +218,30 @@ deploy-pull
 ```
 
 This unlocks the repo, pulls, copies all files to their active locations, and locks it again.
+
+### Install the build commands
+
+After pulling the repo you also have two build commands available. Install them the same way:
+
+```bash
+cp /opt/agents/Sales-Team/config/build-openclaw.sh /usr/local/bin/build-openclaw
+cp /opt/agents/Sales-Team/config/build-openclaw-skills.sh /usr/local/bin/build-openclaw-skills
+chmod +x /usr/local/bin/build-openclaw
+chmod +x /usr/local/bin/build-openclaw-skills
+```
+
+**`build-openclaw`** — copies the Docker files, config, and all skills to their active locations, then runs a full container rebuild and restart. Use this when you change `Dockerfile`, `docker-compose.yml`, or `openclaw.json`:
+```bash
+build-openclaw
+```
+
+**`build-openclaw-skills`** — copies only the skills folder, then restarts the `openclaw` container (no rebuild needed). Use this for day-to-day skill updates since skills change much more often than Docker config:
+```bash
+build-openclaw-skills
+```
+
+> **Tip**: After running `deploy-pull` to pull the latest commits, follow up with `build-openclaw` (for Docker/config changes) or `build-openclaw-skills` (for skills-only changes) to apply them immediately.
+
 ## 5) Clone OpenClaw
 
 ```bash
