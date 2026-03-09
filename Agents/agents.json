@@ -239,6 +239,12 @@
         }
       },
       "budgets": { "daily_usd": 2, "monthly_usd": 50 }
+    },
+    {
+      "id": "SEO_backlink_builder", 
+      "display_name": "SEO Backlink Builder (Drafts Only)",
+      "role_md": "agents/seo_backlink_builder.md"
     }
+      
   ]
 }

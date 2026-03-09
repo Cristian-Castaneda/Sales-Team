@@ -44,23 +44,26 @@ Once requirements are clear, run:
 ```bash
 bun scripts/generate-skill.ts \
   --description "Full description of what the skill should do" \
-  --out "./generated-skills"
+  --out "/root/.openclaw/generated-skills"
 ```
 
 The script calls Claude claude-sonnet-4-6 with the full OpenClaw skill specification
 and outputs a complete skill folder ready to install.
 
-### Step 3 — Review and Install
+### Step 3 — Review and commit to repo
 
-The generated skill folder appears in `./generated-skills/skill-name/`.
+The generated skill appears in `~/.openclaw/generated-skills/skill-name/` on the VPS.
 
-Review the output, then install:
+From your Mac, pull it down:
 ```bash
-# Copy to your skills directory
-cp -r ./generated-skills/skill-name /path/to/openclaw/skills/
+scp -r root@72.61.58.110:/root/.openclaw/generated-skills/skill-name ~/Sales-Team/skills/
+```
 
-# Run its setup if it has one
-bash /path/to/openclaw/skills/skill-name/scripts/setup.sh
+Review the files, commit, and push. Then on the VPS run `deploy-pull` to install.
+
+If the skill has a setup script:
+```bash
+docker compose -f /opt/openclaw-deploy/docker-compose.yml exec openclaw bash skills/skill-name/scripts/setup.sh
 ```
 
 ### Step 4 — Confirm to User
