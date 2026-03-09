@@ -16,7 +16,8 @@
   "env": {
     "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}",
     "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
-    "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+    "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+    "TELEGRAM_BOT_TOKEN": "${TELEGRAM_BOT_TOKEN}"
   },
   "browser": {
     "enabled": true,
@@ -32,6 +33,12 @@
       "enabled": true,
       "dmPolicy": "allowlist",
       "allowFrom": ["+56954130924"]
+    },
+    "telegram": {
+      "enabled": true,
+      "token": "${TELEGRAM_BOT_TOKEN}",
+      "dmPolicy": "allowlist",
+      "allowFrom": ["8794533158"]
     }
   }
 }

@@ -299,6 +299,8 @@ OPENAI_API_KEY=YOUR_OPENAI_KEY
 
 OPENCLAW_GATEWAY_TOKEN=PUT_A_LONG_RANDOM_SECRET_HERE
 
+TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
+
 GITHUB_REPO_SSH=git@github.com:Cristian-Castaneda/Sales-Team.git
 ```
 
@@ -378,25 +380,50 @@ If you use Termius as your SSH client, you can set up a persistent port forwardi
 
 Then open `http://127.0.0.1:18789` in your Mac browser. The tunnel stays active as long as the rule is on — no terminal commands needed.
 
-## 12) Set up WhatsApp channel
+## 12) Set up Telegram channel
 
-The WhatsApp channel is already enabled in the `config/openclaw.json` we deployed in step 7. After starting the containers, pair the WhatsApp account using the OpenClaw onboarding/pairing flow.
+The Telegram channel is already enabled in `config/openclaw.json`. You only need to do two things before starting the containers:
 
-OpenClaw docs show:
-- WhatsApp is a supported channel
-- pairing mode is the default DM control
-- pairing requests can be approved via CLI if needed
+### 12a) Get your Telegram numeric user ID
+
+Message **@userinfobot** on Telegram. It will instantly reply with your user ID, something like:
+
+```
+Id: 123456789
+First: Cristian
+```
+
+Copy that number.
+
+### 12b) Set the allowlist in openclaw.json
+
+In `config/openclaw.json`, replace `YOUR_TELEGRAM_CHAT_ID` with your numeric user ID:
+
+```json
+"allowFrom": ["123456789"]
+```
+
+Commit and push, then run `deploy-pull` on the VPS to apply.
+
+### 12c) Add the bot token to the VPS .env
+
+Make sure `/opt/openclaw-deploy/.env` has:
+
+```env
+TELEGRAM_BOT_TOKEN=your_bot_token_here
+```
+
+(The bot token comes from [@BotFather](https://t.me/BotFather) on Telegram — `/newbot` to create one, or `/mybots` if you already have it.)
+
+### 12d) Start the bot
+
+After deploying the config and restarting the containers, open Telegram, find your bot by its username, and send it any message. Because `dmPolicy` is `allowlist`, only your user ID can talk to it.
 
 ---
 
-## 13) Optional: WhatsApp Cloud API path
+## 13) WhatsApp channel (optional, already configured)
 
-If you want official Meta Cloud API instead of WhatsApp Web, there is a current plugin/project for OpenClaw WhatsApp Cloud API setup.
-
-For now, the fastest path is:
-- start with built-in WhatsApp channel
-- pair by QR
-- confirm inbound/outbound messages work
+The WhatsApp channel is also enabled in `config/openclaw.json` with your number `+56954130924`. After starting the containers, pair via the OpenClaw onboarding/pairing flow (QR or pairing code through the Gateway UI at `http://127.0.0.1:18789`).
 
 ---
 
