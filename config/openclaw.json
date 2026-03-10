@@ -38,7 +38,8 @@
       "enabled": true,
       "botToken": "${TELEGRAM_BOT_TOKEN}",
       "dmPolicy": "allowlist",
-      "allowFrom": ["8794533158"]
+      "allowFrom": ["8794533158"],
+      "streamMode": "off"
     }
   }
 }
