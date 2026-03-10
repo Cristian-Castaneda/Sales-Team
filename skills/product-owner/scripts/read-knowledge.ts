@@ -1,26 +1,23 @@
 #!/usr/bin/env bun
-// read-knowledge.ts — Read product knowledge from workspace/product/knowledge.md
+// read-knowledge.ts — Read product knowledge from skills/product-owner/product-features.md
 //
 // Usage:
 //   bun scripts/read-knowledge.ts                    # print full knowledge file
 //   bun scripts/read-knowledge.ts --sections         # list available sections
 //   bun scripts/read-knowledge.ts --section Features # print only that section
-//
-// Environment variables:
-//   OPENCLAW_WORKSPACE — workspace root (default: ~/.openclaw/workspace)
 
-import { parseArgs, optionalArg, readWorkspaceFile } from "./lib/workspace.ts";
+import { parseArgs, optionalArg } from "./lib/workspace.ts";
+import { existsSync, readFileSync } from "fs";
+import { join } from "path";
 
-const KNOWLEDGE_PATH = "product/knowledge.md";
+const KNOWLEDGE_PATH = join(import.meta.dir, "../product-features.md");
 const args = parseArgs(process.argv);
 const sectionsOnly = args["sections"] !== undefined;
 const sectionFilter = optionalArg(args, "section");
 
-const content = readWorkspaceFile(KNOWLEDGE_PATH);
+const content = existsSync(KNOWLEDGE_PATH) ? readFileSync(KNOWLEDGE_PATH, "utf-8") : null;
 if (!content) {
-  console.warn("⚠️  No product knowledge file found at workspace/product/knowledge.md");
-  console.warn("💡 Run: bun scripts/update-knowledge.ts --init");
-  console.warn("   Then add product facts using: bun scripts/update-knowledge.ts --section Features ...");
+  console.warn("⚠️  No product knowledge file found at skills/product-owner/product-features.md");
   process.exit(0);
 }
 
@@ -56,6 +53,6 @@ if (sectionFilter) {
   console.log(`📄 Section: ${match}\n${"─".repeat(60)}`);
   console.log(sectionContent[match].join("\n"));
 } else {
-  console.log(`📄 Product Knowledge — workspace/${KNOWLEDGE_PATH}\n${"─".repeat(60)}`);
+  console.log(`📄 Product Knowledge — skills/product-owner/product-features.md\n${"─".repeat(60)}`);
   console.log(content);
 }

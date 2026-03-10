@@ -224,6 +224,16 @@ Architecture-level isolation: each company's data lives in separate Firestore ro
 Security rules enforce isolation at the database layer, not just the application layer.
 No configuration error can cause cross-tenant data exposure.
 
+### 10. Advanced approval flow
+Multi-step approval routing based on expense type, amount thresholds, and org structure.
+Not a simple one-approver system — fully configurable routing that matches how real finance
+teams actually work.
+
+### 11. LATAM-native from day one
+Spanish-first, MercadoPago, CLP/MXN/ARS/COP support, local tax ID formats (RUT/RFC/CUIT),
+LATAM accounting vocabulary (Rendidor, Aprobador, Pagador, Caja Chica, Fondos por Rendir).
+Not a US product with a translation layer — built for this market from the ground up.
+
 ---
 
 ## Benefits

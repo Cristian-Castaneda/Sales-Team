@@ -97,7 +97,7 @@ bun scripts/update-knowledge.ts \
 ```
 
 This script:
-- Reads `workspace/product/knowledge.md`
+- Reads `skills/product-owner/product-features.md`
 - Appends or replaces the specified section
 - Increments the version number
 - Adds a changelog entry
@@ -106,7 +106,7 @@ This script:
 #### Step 4 — Confirm to user
 
 - ✅ Knowledge updated — section, version, change note
-- 📁 Saved to `workspace/product/knowledge.md`
+- 📁 Saved to `skills/product-owner/product-features.md`
 
 ---
 
@@ -140,5 +140,5 @@ This script:
 - Core principle: **no guessing, no hallucinations**
 - If something is not in the knowledge file → say so explicitly
 - Comparisons to competitors only from documented data
-- The knowledge file lives at `workspace/product/knowledge.md`
+- The knowledge file lives at `skills/product-owner/product-features.md`
 - Version format: `major.minor.patch` (bump patch for additions, minor for restructuring)

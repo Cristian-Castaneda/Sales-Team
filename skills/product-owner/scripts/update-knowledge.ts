@@ -21,10 +21,11 @@
 // Environment variables:
 //   OPENCLAW_WORKSPACE — workspace root (default: ~/.openclaw/workspace)
 
-import { parseArgs, optionalArg, readWorkspaceFile, writeWorkspaceFile, getToday, bumpPatch } from "./lib/workspace.ts";
-import { readFileSync } from "fs";
+import { parseArgs, optionalArg, getToday, bumpPatch } from "./lib/workspace.ts";
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import { join } from "path";
 
-const KNOWLEDGE_PATH = "product/knowledge.md";
+const KNOWLEDGE_PATH = join(import.meta.dir, "../product-features.md");
 const args = parseArgs(process.argv);
 
 const isInit     = args["init"] !== undefined;
@@ -45,7 +46,7 @@ if (!newContent && !isInit) {
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 if (isInit) {
-  const existing = readWorkspaceFile(KNOWLEDGE_PATH);
+  const existing = existsSync(KNOWLEDGE_PATH) ? readFileSync(KNOWLEDGE_PATH, "utf-8") : null;
   if (existing) {
     console.log("ℹ️  Knowledge file already exists — use --section to update specific sections.");
     process.exit(0);
@@ -91,8 +92,8 @@ last_updated: ${getToday()}
 - 0.1.0 (${getToday()}): Initial knowledge file created.
 `;
 
-  const savedPath = writeWorkspaceFile(KNOWLEDGE_PATH, template);
-  console.log(`✅ Knowledge file initialized: ${savedPath}`);
+  writeFileSync(KNOWLEDGE_PATH, template, "utf-8");
+  console.log(`✅ Knowledge file initialized: ${KNOWLEDGE_PATH}`);
   console.log("💡 Next: fill in the sections using --section updates.");
   process.exit(0);
 }
@@ -114,7 +115,7 @@ if (!changeNote) {
   process.exit(1);
 }
 
-let file = readWorkspaceFile(KNOWLEDGE_PATH);
+let file = existsSync(KNOWLEDGE_PATH) ? readFileSync(KNOWLEDGE_PATH, "utf-8") : null;
 if (!file) {
   console.error("❌ Knowledge file not found. Run --init first.");
   process.exit(1);
@@ -161,8 +162,8 @@ if (sectionIdx === -1) {
 const changelogEntry = `- ${newVersion} (${getToday()}): ${changeNote}`;
 file = file.replace(/(## Changelog\n)/, `$1${changelogEntry}\n`);
 
-const savedPath = writeWorkspaceFile(KNOWLEDGE_PATH, file);
+writeFileSync(KNOWLEDGE_PATH, file, "utf-8");
 
-console.log(`\n✅ Knowledge updated → ${savedPath}`);
+console.log(`\n✅ Knowledge updated → ${KNOWLEDGE_PATH}`);
 console.log(`📦 Version: ${currentVersion} → ${newVersion}`);
 console.log(`📝 Change: ${changeNote}`);
