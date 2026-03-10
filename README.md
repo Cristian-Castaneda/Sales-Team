@@ -58,6 +58,12 @@ This is the minimal step-by-step blueprint to get a **private OpenClaw server** 
     |       |   +-- linkedin_publisher.md
     |       |   +-- Image_builder.md
     |       |   +-- video_builder.md
+            +-- workspace/
+            |   +-- IDENTITY.md                  Agent name, emoji, greeting
+            |   +-- SOUL.md                      Personality, tone, communication rules
+            |   +-- USER.md                      Operator profile (Cristian + Expense 360 context)
+            |   +-- AGENTS.md                    Mission, priorities, decision rules
+            |   +-- HEARTBEAT.md                 Periodic autonomous checks
     |       +-- workflows/
     |           +-- daily_5_posts.md
     |
@@ -78,6 +84,12 @@ Sales-Team/
 │   └── docker-compose.yml         # Docker Compose for OpenClaw + headless Chrome
 ├── config/
 │   └── openclaw.json              # OpenClaw configuration (models, browser, channels)
+├── workspace/
+│   ├── IDENTITY.md                # Agent identity card (name, emoji, greeting)
+│   ├── SOUL.md                    # Personality, tone, red lines
+│   ├── USER.md                    # Operator profile and product context
+│   ├── AGENTS.md                  # Mission, priorities, decision-making rules
+│   └── HEARTBEAT.md               # Periodic autonomous check instructions
 ├── skills/
 │   └── skill-builder/             # Meta-skill that generates new OpenClaw skills
 │       ├── SKILL.md               # Skill instructions (read by OpenClaw at runtime)
