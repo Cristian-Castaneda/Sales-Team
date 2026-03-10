@@ -1,6 +1,6 @@
 # Expense-360 — Product Knowledge Base
 
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Last updated:** 2026-03-10
 **Maintained by:** product-owner skill
 
@@ -10,6 +10,7 @@
 
 | Version | Date       | Change                                |
 |---------|------------|---------------------------------------|
+| 1.1.0   | 2026-03-10 | Added real pricing, traction, multi-company, workspaces, business units, cost centers, updated competitive positioning |
 | 1.0.0   | 2026-03-10 | Initial knowledge base — full product loaded from RFP v1.0 |
 
 ---
@@ -20,7 +21,14 @@
 **Category:** Corporate expense management SaaS
 **Primary market:** Small-to-mid-sized companies in Latin America (LATAM)
 **Default language:** Spanish (es)
-**Billing model:** SaaS subscription — Basic / Pro / Enterprise tiers, with a free trial period
+**Billing model:** SaaS subscription — per user/month pricing, free trial available
+
+**Pricing:**
+- Basic: $3 USD / user / month
+- Pro: $6 USD / user / month
+- Enterprise: $7 USD / user / month
+
+**Current traction:** ~100 customers, averaging 8 users per company
 
 Expense-360 replaces fragmented, manual corporate expense workflows with a structured, multi-tenant
 platform that handles the full expense lifecycle: submission, approval routing, fund disbursement,
@@ -68,6 +76,29 @@ role-based approval chains, and WhatsApp-native submission so employees don't ne
 - **QR code generation** — generate QR per expense report for physical submission workflows
 - **Audit log** — every consequential action (approval, rejection, payment, role change) is
   timestamped and attributed to the actor
+
+### Multi-Company System
+
+A single user account can be linked to multiple companies (empresas) and switch between them
+from a single login — without any data mixing between them. This is designed for accounting
+firms, consultants, or holding groups that manage expenses across multiple legal entities.
+
+- One login, multiple companies
+- Company switcher in the UI — fast, clean, no re-authentication
+- Full data isolation between companies — switching companies never exposes data from another
+- Each company has its own roles, approval flows, budgets, and settings
+- The user's role can be different in each company (e.g. Administrador in Company A, Rendidor in Company B)
+
+### Workspaces — Unidades de Negocio & Centros de Costo
+
+Expenses are organized inside workspaces that map to the company's internal structure.
+
+- **Unidad de Negocio (Business Unit)** — group expenses by business division (e.g. Retail, Servicios, Obras)
+- **Centro de Costo (Cost Center)** — tag expenses to accounting cost centers for reporting and allocation
+- **Multi-currency per workspace** — each workspace or business unit can operate in its own currency
+  (e.g. CLP for Chile operations, USD for international projects, MXN for Mexico branch)
+- Expense reports and dashboards can be filtered and broken down by business unit and cost center
+- Finance teams can set budgets and track spend at the cost center level
 
 ### WhatsApp Submission Channel
 
@@ -178,7 +209,17 @@ The landing page and WhatsApp marketing channel use a Claude-powered assistant t
 relevant product knowledge before answering. Not a generic chatbot — a product-expert that
 never guesses and can qualify leads 24/7.
 
-### 7. Tenant isolation by design
+### 7. Multi-company system — one login, multiple empresas
+Accounting firms and holding groups manage multiple legal entities from a single user account.
+The company switcher is clean, fast, and completely isolated — switching never mixes data.
+Users can have different roles in each company. No other LATAM tool handles this as naturally.
+
+### 8. Workspaces with business units and cost centers
+Expenses are tagged to unidades de negocio and centros de costo, not just dumped into a flat list.
+Each workspace can run in its own currency. Finance teams get reporting broken down by the exact
+dimensions they need for accounting: division, cost center, currency.
+
+### 9. Tenant isolation by design
 Architecture-level isolation: each company's data lives in separate Firestore root collections.
 Security rules enforce isolation at the database layer, not just the application layer.
 No configuration error can cause cross-tenant data exposure.
@@ -239,23 +280,74 @@ No configuration error can cause cross-tenant data exposure.
 ## Comparisons
 
 ### vs. RindeGastos
-- RindeGastos is web and mobile-first; no WhatsApp-native submission flow
-- RindeGastos does not have native Fondos por Rendir or Caja Chica as dedicated modules
-- Expense-360 has direct Meta API integration; RindeGastos routes through BSPs if WhatsApp exists at all
-- Expense-360 OCR auto-fills forms; reduces manual data entry at submission time
 
-### vs. Tickelia
-- Tickelia is primarily a Spanish/European tool, not LATAM-native
-- Currency, tax handling, and role vocabulary are designed for Spain (not Chile/Mexico/Argentina)
-- Expense-360 supports MercadoPago natively for LATAM payment workflows
-- Tickelia has no WhatsApp submission channel
+**Overall:** Expense-360 and RindeGastos are the most direct competitors — similar core feature set,
+both LATAM-focused. Expense-360 wins on specific structural capabilities.
+
+| Dimension | Expense-360 | RindeGastos |
+|---|---|---|
+| WhatsApp expense submission | Yes — native, direct Meta API, guided bot flow | No native WhatsApp submission |
+| Approval flow | Advanced multi-step routing with amount thresholds and org structure | Basic approval flow |
+| Multi-company system | One login, multiple empresas, fast switcher, full isolation | Limited or no multi-company support |
+| Unidad de Negocio / Centro de Costo | Native workspaces with business units and cost centers | Basic cost center tagging |
+| Multi-currency | Per workspace/business unit currency | Limited multi-currency |
+| Caja Chica | Dedicated module | Basic support |
+| Fondos por Rendir | Dedicated module | Basic support |
+| OCR receipt extraction | Google Cloud Document AI — auto-fills form | Manual entry or basic OCR |
+| Pricing | From $3/user/month | Comparable range |
 
 ### vs. Expensify
-- Expensify is a global US product with no WhatsApp channel
-- No LATAM-specific modules (Caja Chica, Fondos por Rendir do not exist)
-- Expensify pricing is in USD, often expensive for LATAM SMBs
-- Expense-360 is built for LATAM compliance vocabulary and workflows from the ground up
-- Expensify has no MercadoPago integration
+
+**Overall:** Expensify is a strong global product built for the US and global enterprise market.
+It is not built for LATAM. The gaps are structural, not cosmetic.
+
+| Dimension | Expense-360 | Expensify |
+|---|---|---|
+| WhatsApp expense submission | Yes — native bot flow | No |
+| LATAM-specific modules | Caja Chica, Fondos por Rendir | Not available |
+| Multi-company system | Native, with fast switching | Not native |
+| Business units / cost centers | Native workspaces | Basic policy-level tagging |
+| Multi-currency | Per workspace | Yes, but USD-centric |
+| MercadoPago integration | Yes | No |
+| Language | Spanish-first | English-first |
+| Pricing | From $3/user/month | Starts ~$5–20/user/month (USD) |
+| Market fit | Built for LATAM from day one | US/global product adapted for LATAM |
+
+### vs. Tickelia
+- Tickelia is a Spanish/European tool — built for Spain, not LATAM
+- Currency handling, tax fields, and role vocabulary are designed for the Spanish market
+- No WhatsApp submission channel
+- No MercadoPago or LATAM local payment method support
+- Expense-360 is the native LATAM alternative
+
+---
+
+## Traction & Social Proof
+
+- **~100 customers** (companies using the platform)
+- **~800 active users** (averaging 8 users per company)
+- Growing customer base across LATAM, with Chile as primary market
+- Customers are SMBs and mid-market companies currently migrating from spreadsheet/WhatsApp workflows
+
+> **Note for marketing:** Use "cerca de 100 empresas" or "más de 80 empresas" in copy — do not use
+> exact numbers that may go stale. Update this section as milestones are hit.
+
+---
+
+## Pricing
+
+| Plan        | Price             | Best for                                      |
+|-------------|-------------------|-----------------------------------------------|
+| Basic       | $3 USD/user/month | Small teams getting started, basic workflows  |
+| Pro         | $6 USD/user/month | Growing companies with more complex approvals |
+| Enterprise  | $7 USD/user/month | Large or multi-company organizations          |
+
+- All plans include a free trial period
+- Per-user pricing makes cost proportional to company size
+- MercadoPago and Dodo Payments accepted — local billing available for Chile
+
+**Pricing angle for copy:** At $3/user/month for Basic, the ROI is immediate. One hour saved
+per finance team member per month more than covers the cost.
 
 ---
 
@@ -298,8 +390,29 @@ integration, CLP currency). México, Argentina, Colombia, and Perú are actively
 A: Expense reports can be exported as XLSX and PDF for import into any accounting tool. Direct
 ERP integrations are on the product roadmap.
 
+**Q: What does it cost?**
+A: Basic is $3/user/month, Pro is $6/user/month, Enterprise is $7/user/month. All plans include
+a free trial. For a team of 8 users (our average customer size), Basic costs $24/month total.
+
 **Q: Is there a free trial?**
 A: Yes. New tenant accounts get a free trial period before being required to subscribe to a paid plan.
+
+**Q: Can one user manage expenses for multiple companies?**
+A: Yes. Expense-360 has a native multi-company system. One login can be linked to multiple empresas,
+with a fast switcher in the UI and complete data isolation between companies. The user can have a
+different role in each company. This is designed for accounting firms, holding groups, or any
+user who manages operations across multiple legal entities.
+
+**Q: What are Unidades de Negocio and Centros de Costo?**
+A: These are workspaces inside a company that map expenses to internal business structure.
+Unidad de Negocio groups expenses by business division. Centro de Costo tags expenses to
+accounting cost centers. Each workspace can use its own currency. Finance teams can report
+and filter spend by these dimensions — not just by employee or date.
+
+**Q: Do you support multiple currencies?**
+A: Yes. Each workspace (unidad de negocio or centro de costo) can operate in its own currency.
+A company running Chile operations in CLP and international projects in USD can track both
+in the same platform without mixing them.
 
 ---
 
@@ -373,8 +486,10 @@ A: Yes. New tenant accounts get a free trial period before being required to sub
 | Objection                              | Response                                                                                    |
 |----------------------------------------|---------------------------------------------------------------------------------------------|
 | "We already manage with WhatsApp/Excel" | That's exactly the problem we solve. Expense-360 gives structure to what you already do, without forcing employees to learn a new app. |
-| "It's too expensive for our size"      | We have a free trial and plans starting at SMB size. Calculate the hours your finance team spends chasing receipts and approvals — the math flips fast. |
+| "It's too expensive for our size"      | Basic plan is $3/user/month. For a team of 8 users that's $24/month total. If your finance team saves 2 hours this month — you've already paid for the year. |
 | "We use [competitor]"                  | Ask if they have WhatsApp-native submission, Caja Chica, Fondos por Rendir, and MercadoPago. If not, they built it for a different market. |
 | "Our employees won't adopt a new tool" | They don't need to. They submit via WhatsApp. Zero app download, zero new login. Finance teams get the structured dashboard. |
 | "We're worried about data security"    | Each company's data is completely isolated at the database level — enforced by Firebase Security Rules, not just app logic. |
 | "We need ERP integration"              | XLSX and PDF export work with any accounting tool today. Direct ERP integrations are on the roadmap. |
+| "We manage multiple companies"         | That's a native use case. One login, multiple empresas, fast company switcher, no data mixing. Users can have different roles in each company. |
+| "We need to track by cost center"      | Centros de Costo and Unidades de Negocio are built into the platform as workspaces. Each can run in its own currency. Reports filter by these dimensions. |
