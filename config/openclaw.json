@@ -13,6 +13,18 @@
       }
     }
   },
+  "tools": {
+    "exec": {
+      "enabled": true,
+      "security": "full"
+    },
+    "read": {
+      "enabled": true
+    },
+    "write": {
+      "enabled": true
+    }
+  },
   "env": {
     "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}",
     "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
@@ -40,18 +52,6 @@
       "dmPolicy": "allowlist",
       "allowFrom": ["8794533158"],
       "streamMode": "off"
-    },
-    "tools": {
-      "exec": {
-        "enabled": true,
-        "security": "full"
-      },
-      "read": {
-        "enabled": true
-      },
-      "write": {
-        "enabled": true
-      }
     }
   }
 }
