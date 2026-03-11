@@ -567,6 +567,10 @@ You are done with the base system when all of this is true:
 - OpenRouter key is working
 - Anthropic and OpenAI keys are stored as fallbacks
 - `skill-builder` shows as eligible in `openclaw skills list --eligible`
+- `docker compose ps` shows `n8n` running
+- `https://n8n.expense-360.com` loads in the browser
+- LinkedIn → Twenty workflow is active in n8n
+- A test lead submitted via LinkedIn appears in Twenty within 15 minutes
 
 ---
 
@@ -582,3 +586,87 @@ Once this base works, the next layer is:
 - add more channels if needed
 
 This file stops at the first working infrastructure layer.
+
+---
+
+## 19) Set up n8n
+
+n8n is the workflow automation engine that connects LinkedIn Lead Gen forms to the Twenty CRM.
+
+### 19a) Create the n8n data directory
+
+```bash
+mkdir -p /opt/openclaw-deploy/n8n-data
+chown -R 1000:1000 /opt/openclaw-deploy/n8n-data
+```
+
+### 19b) Issue an SSL certificate for n8n.expense-360.com
+
+Make sure the DNS A record for `n8n.expense-360.com` points to your VPS IP before running certbot:
+
+```bash
+certbot certonly --nginx -d n8n.expense-360.com
+```
+
+### 19c) Add n8n secrets to the VPS .env
+
+Edit `/opt/openclaw-deploy/.env` and add:
+
+```env
+TWENTY_API_KEY=your_twenty_api_key_here
+GENERIC_TIMEZONE=America/Santiago
+```
+
+Get your Twenty API key from: **Settings → API & Webhooks → API Keys** inside the Twenty CRM UI at `https://crm.expense-360.com`.
+
+### 19d) Copy the updated nginx config and reload
+
+```bash
+cp /opt/agents/Sales-Team/config/nginx.conf /etc/nginx/sites-available/expense-360
+ln -sf /etc/nginx/sites-available/expense-360 /etc/nginx/sites-enabled/expense-360
+nginx -t && systemctl reload nginx
+```
+
+### 19e) Bring up the containers
+
+```bash
+cd /opt/openclaw-deploy
+cp /opt/agents/Sales-Team/docker/docker-compose.yml ./docker-compose.yml
+docker compose up -d
+docker compose ps
+```
+
+### 19f) Create the n8n admin account
+
+Open `https://n8n.expense-360.com` in your browser. On first load, n8n will prompt you to create an admin account. Fill in your email and a strong password and complete the setup wizard.
+
+---
+
+## 20) Import LinkedIn → Twenty workflow
+
+### 20a) Import the workflow file
+
+1. Log into `https://n8n.expense-360.com`
+2. Click **Workflows** in the sidebar → **Add workflow** → **Import from file**
+3. Select `integrations/linkedin-to-twenty.json` from this repo
+
+### 20b) Connect your LinkedIn OAuth credential
+
+1. Open the imported workflow
+2. Click the **LinkedIn Lead Gen Form** trigger node
+3. Under **Credential**, click **Create new** and follow the LinkedIn OAuth2 flow
+4. Authorize the n8n app in LinkedIn Campaign Manager
+
+### 20c) Set your LinkedIn form ID
+
+1. Go to [LinkedIn Campaign Manager](https://www.linkedin.com/campaignmanager/)
+2. Navigate to **Account Assets → Lead Gen Forms** and copy the numeric form ID from the URL
+3. Back in n8n, open the **LinkedIn Lead Gen Form** node and replace `YOUR_LINKEDIN_FORM_ID_HERE` with the real form ID
+
+### 20d) Verify TWENTY_API_KEY is set
+
+Confirm `/opt/openclaw-deploy/.env` contains a valid `TWENTY_API_KEY`. The n8n workflow reads this from the container environment — no additional configuration in n8n is needed.
+
+### 20e) Activate the workflow
+
+Click the **Inactive** toggle in the top-right of the workflow editor to set it to **Active**. The LinkedIn trigger will now poll every 15 minutes for new lead gen form submissions and push them to Twenty automatically.

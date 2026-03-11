@@ -1,0 +1,205 @@
+{
+  "name": "LinkedIn Lead Gen → Twenty CRM",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 15,
+              "unit": "minutes"
+            }
+          ]
+        },
+        "accountId": "",
+        "formId": "YOUR_LINKEDIN_FORM_ID_HERE",
+        "additionalFields": {}
+      },
+      "id": "node-linkedin-trigger",
+      "name": "LinkedIn Lead Gen Form",
+      "type": "n8n-nodes-base.linkedInTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "linkedin-oauth-credential",
+          "name": "LinkedIn OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "jsonToBinary",
+        "jsCode": "const leads = $input.all();\nconst mapped = leads.map(item => {\n  const fields = item.json;\n  return {\n    json: {\n      firstName: fields.firstName || fields.first_name || '',\n      lastName: fields.lastName || fields.last_name || '',\n      email: fields.email || fields.emailAddress || '',\n      phone: fields.phone || fields.phoneNumber || '',\n      company: fields.company || fields.companyName || '',\n      jobTitle: fields.jobTitle || fields.title || '',\n      linkedinFormId: fields.formId || '',\n      source__c: 'paid_ad',\n      stage__c: 'new_contact'\n    }\n  };\n});\nreturn mapped;"
+      },
+      "id": "node-map-fields",
+      "name": "Map Lead Fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://crm.expense-360.com/rest/people",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.TWENTY_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filter",
+              "value": "=emails.primaryEmail.eq.{{$json.email}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-check-email",
+      "name": "Check Email Exists in Twenty",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-no-existing",
+              "leftValue": "={{$json.totalCount}}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "node-if-new",
+      "name": "Is New Lead?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://crm.expense-360.com/rest/people",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{$env.TWENTY_API_KEY}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"firstName\": { \"firstName\": \"{{ $('Map Lead Fields').item.json.firstName }}\", \"lastName\": \"{{ $('Map Lead Fields').item.json.lastName }}\" },\n  \"emails\": { \"primaryEmail\": \"{{ $('Map Lead Fields').item.json.email }}\" },\n  \"phones\": { \"primaryPhoneNumber\": \"{{ $('Map Lead Fields').item.json.phone }}\", \"primaryPhoneCountryCode\": \"+56\" },\n  \"company\": { \"name\": \"{{ $('Map Lead Fields').item.json.company }}\" },\n  \"jobTitle\": \"{{ $('Map Lead Fields').item.json.jobTitle }}\",\n  \"stage__c\": \"new_contact\",\n  \"source__c\": \"paid_ad\"\n}",
+        "options": {}
+      },
+      "id": "node-post-twenty",
+      "name": "POST to Twenty REST API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1200, 220]
+    }
+  ],
+  "connections": {
+    "LinkedIn Lead Gen Form": {
+      "main": [
+        [
+          {
+            "node": "Map Lead Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Lead Fields": {
+      "main": [
+        [
+          {
+            "node": "Check Email Exists in Twenty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Email Exists in Twenty": {
+      "main": [
+        [
+          {
+            "node": "Is New Lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is New Lead?": {
+      "main": [
+        [
+          {
+            "node": "POST to Twenty REST API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": ""
+  },
+  "id": "linkedin-to-twenty-workflow",
+  "tags": [
+    {
+      "createdAt": "2026-03-11T00:00:00.000Z",
+      "updatedAt": "2026-03-11T00:00:00.000Z",
+      "id": "tag-crm-integration",
+      "name": "crm-integration"
+    }
+  ]
+}

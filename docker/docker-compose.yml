@@ -30,3 +30,20 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+
+  n8n:
+    image: n8nio/n8n:latest
+    ports:
+      - "127.0.0.1:5678:5678"
+    env_file:
+      - .env
+    environment:
+      - N8N_HOST=n8n.expense-360.com
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.expense-360.com/
+      - GENERIC_TIMEZONE=America/Santiago
+      - TWENTY_API_KEY=${TWENTY_API_KEY}
+    volumes:
+      - ./n8n-data:/home/node/.n8n
+    restart: always
