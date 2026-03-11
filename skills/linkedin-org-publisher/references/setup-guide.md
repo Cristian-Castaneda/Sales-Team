@@ -12,7 +12,7 @@ It requires an OAuth token with `w_organization_social` scope and the organizati
 1. Go to [LinkedIn Developer Portal](https://www.linkedin.com/developers/apps)
 2. Click **Create app**
 3. Fill in:
-   - App name: `Expense-360 Marketing` (or your choice)
+   - App name: `Expense-360` (or your choice)
    - LinkedIn Page: select your company page
    - App logo: upload any logo
 4. Click **Create app**
