@@ -15,14 +15,7 @@
   },
   "tools": {
     "exec": {
-      "enabled": true,
       "security": "full"
-    },
-    "read": {
-      "enabled": true
-    },
-    "write": {
-      "enabled": true
     }
   },
   "env": {
@@ -51,7 +44,7 @@
       "botToken": "${TELEGRAM_BOT_TOKEN}",
       "dmPolicy": "allowlist",
       "allowFrom": ["8794533158"],
-      "streamMode": "off"
+      "streaming": "off"
     }
   }
 }
