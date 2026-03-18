@@ -44,6 +44,20 @@ echo "  config/build-openclaw.sh       -> /usr/local/bin/build-openclaw"
 echo "  config/build-openclaw-skills.sh -> /usr/local/bin/build-openclaw-skills"
 echo ""
 
+echo "==> Advancing Telegram offset to discard stale updates..."
+source "$DEPLOY/.env"
+LATEST=$(curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=-1" \
+  | python3 -c "import sys,json; u=json.load(sys.stdin).get('result',[]); print(u[0]['update_id']+1 if u else 0)")
+if [ "$LATEST" -gt 0 ]; then
+  mkdir -p "$OPENCLAW_CONFIG/telegram"
+  cat > "$OPENCLAW_CONFIG/telegram/update-offset-default.json" << EOF
+{"version":2,"lastUpdateId":${LATEST},"botId":"8669356135"}
+EOF
+  echo "  Telegram offset advanced to ${LATEST}"
+else
+  echo "  No updates found, skipping offset reset"
+fi
+
 echo "==> Rebuilding and restarting containers..."
 cd "$DEPLOY"
 docker compose down
