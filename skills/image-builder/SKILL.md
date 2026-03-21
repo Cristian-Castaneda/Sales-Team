@@ -51,7 +51,7 @@ nano-banana-pro --version
 bun scripts/generate-image.ts --check-brand
 ```
 
-Reads `workspace/brand/brand_kit.md` and prints brand color and style constraints.
+Reads `config/brandKit.md` and prints brand color and style constraints.
 If not found, prints a warning and continues — never blocks.
 
 ### Step 2 — Build the image prompt
