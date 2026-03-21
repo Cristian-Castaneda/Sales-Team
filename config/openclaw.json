@@ -15,14 +15,7 @@
   },
   "tools": {
     "exec": {
-      "enabled": true,
       "security": "full"
-    },
-    "read": {
-      "enabled": true
-    },
-    "write": {
-      "enabled": true
     }
   },
   "env": {
