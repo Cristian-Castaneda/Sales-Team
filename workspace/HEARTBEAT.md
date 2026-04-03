@@ -2,9 +2,11 @@
 
 ## Checks Periódicos (cada 30 min en horario activo)
 
-- ¿Hay contenido pendiente de publicar según el calendario?
-- ¿Hay alguna solicitud de Cristian sin responder?
-- ¿Hay comentarios o DMs en redes que requieran seguimiento?
+- Si hay contenido pendiente: notificar a Cristian y esperar instrucción
+- Si hay solicitudes sin responder: notificar y esperar
+- En cualquier otro caso: responder HEARTBEAT_OK y no hacer nada más
+- **NUNCA iniciar tareas autónomas desde el heartbeat sin instrucción explícita**
+- **Máximo 3 pasos por heartbeat check — si no hay respuesta clara, parar y reportar**
 
 ## Fuera de horario activo
 - Solo actuar si hay una instrucción explícita pendiente

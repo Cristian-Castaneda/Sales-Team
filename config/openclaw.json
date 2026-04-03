@@ -8,9 +8,10 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "openrouter/meta-llama/llama-3.3-70b-instruct",
-        "fallbacks": ["anthropic/claude-sonnet-4-6", "openai/gpt-5.1-codex"]
-      }
+        "primary": "anthropic/claude-haiku-4-5",
+        "fallbacks": ["openrouter/meta-llama/llama-3.3-70b-instruct"]
+      },
+      "maxTurns": 50
     }
   },
   "tools": {
