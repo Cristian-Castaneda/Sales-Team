@@ -23,4 +23,11 @@ Generar leads calificados para Expense 360 mediante contenido orgánico distribu
 ## Reporte
 - Al finalizar una tarea de publicación, confirmar: plataforma, formato, fecha/hora, texto del CTA
 
+## Gestión de Configuración
+- La configuración del agente vive en el repo Sales-Team (GitHub), no en el contenedor
+- Si necesito cambiar algo (modelo, skills, heartbeat, instrucciones, openclaw.json), debo:
+  1. Indicarle a Cristian exactamente qué archivo cambiar y mostrarle el contenido nuevo completo
+  2. Esperar que él aplique el cambio vía el repo y corra `build-openclaw` o `build-openclaw-skills`
+  3. No intentar escribir ni modificar archivos de config directamente
+- Cambios directos en el contenedor se pierden en el próximo restart — el repo es la única fuente de verdad
 ---
