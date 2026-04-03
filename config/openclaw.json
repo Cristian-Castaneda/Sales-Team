@@ -10,8 +10,7 @@
       "model": {
         "primary": "anthropic/claude-haiku-4-5",
         "fallbacks": ["openrouter/meta-llama/llama-3.3-70b-instruct"]
-      },
-      "maxTurns": 50
+      }
     }
   },
   "tools": {
