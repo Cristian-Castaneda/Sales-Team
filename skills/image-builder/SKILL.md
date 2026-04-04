@@ -13,8 +13,19 @@ description: >
 
 # Image Builder Skill
 
-Generate high-quality marketing images for ads and organic posts via the `nano-banana-pro` generator.
-Follows brand guidelines, applies strict review gate, saves outputs to workspace. Never publishes.
+Generate high-quality marketing images for ads and organic posts using **Claude + Chromium** (default)
+or `nano-banana-pro` (alternative). Follows brand guidelines, applies strict review gate, saves outputs
+to workspace. Never publishes.
+
+## Providers
+
+| Provider | How it works | Output |
+|----------|-------------|--------|
+| `anthropic` (default) | Claude (`claude-opus-4-6`) generates HTML/CSS → Chromium renders PNG | `.png` + `.html` |
+| `nano-banana` | `nano-banana-pro` CLI (OpenClaw bundled) | `.png` |
+
+The **anthropic** provider gives you both the HTML source and the rendered image, so you can
+inspect or edit the HTML and re-render for rapid iteration — no need to regenerate from scratch.
 
 ## First-Time Setup
 
@@ -22,10 +33,14 @@ Follows brand guidelines, applies strict review gate, saves outputs to workspace
 bash scripts/setup.sh
 ```
 
-Verify the generator is available:
-```bash
-nano-banana-pro --version
-```
+This installs Bun, the Anthropic SDK, and verifies the Chromium service is reachable.
+
+**Required environment variables** (add to `.env`):
+
+| Variable | Required for | Description |
+|----------|-------------|-------------|
+| `ANTHROPIC_API_KEY` | `anthropic` provider | Your Anthropic API key (`sk-ant-...`) |
+| `BROWSER_URL` | `anthropic` provider | Chromium URL (default: `http://browser:3000`) |
 
 ---
 
@@ -51,7 +66,7 @@ nano-banana-pro --version
 bun scripts/generate-image.ts --check-brand
 ```
 
-Reads `config/brandKit.md` and prints brand color and style constraints.
+Reads `workspace/brand/brand_kit.md` and prints brand color and style constraints.
 If not found, prints a warning and continues — never blocks.
 
 ### Step 2 — Build the image prompt
@@ -70,6 +85,7 @@ If brand kit exists: add color palette and style guidance from it.
 
 ### Step 3 — Generate image
 
+**Default (anthropic provider):**
 ```bash
 bun scripts/generate-image.ts \
   --job-id "<job_id>" \
@@ -78,7 +94,18 @@ bun scripts/generate-image.ts \
   --version "v1"
 ```
 
-The script calls `nano-banana-pro`, saves the output image to the workspace, and prints the file path.
+This calls Claude to generate HTML, then Chromium renders it to PNG.
+Outputs both `image-<job_id>-v1.png` and `image-<job_id>-v1.html`.
+
+**Alternative (nano-banana provider):**
+```bash
+bun scripts/generate-image.ts \
+  --job-id "<job_id>" \
+  --ratio "<aspect_ratio>" \
+  --prompt "<full_prompt>" \
+  --version "v1" \
+  --provider nano-banana
+```
 
 ### Step 4 — Review gate (MANDATORY — do NOT skip)
 
@@ -90,7 +117,7 @@ Check the generated image:
 - [ ] Looks clean enough for ads/social
 - [ ] Realism/style target is met
 
-**If any item fails:**
+**If any item fails — option A: regenerate with new prompt:**
 ```bash
 bun scripts/generate-image.ts \
   --job-id "<job_id>" \
@@ -98,7 +125,13 @@ bun scripts/generate-image.ts \
   --prompt "<simplified_prompt>" \
   --version "v2"
 ```
-Simplify the prompt, tighten exclusions, reduce elements. Iterate until gate passes (max v5).
+
+**If using anthropic provider — option B: edit the HTML and re-render:**
+The HTML is saved alongside the image. Edit `image-<job_id>-v1.html` directly, then re-run
+with `--version v2` pointing to the corrected HTML. This is faster for minor fixes.
+
+Iterate until gate passes (max v5). If v5 still fails, reduce concept complexity or
+remove text requirement.
 
 ### Step 5 — Save notes and deliver
 
@@ -116,8 +149,20 @@ bun scripts/write-notes.ts \
 Report to user:
 - ✅ Image generated and reviewed
 - 📁 Path: `workspace/assets/images/<date>/<job_id>/image-<job_id>-v1.png`
+- 📄 HTML: `workspace/assets/images/<date>/<job_id>/image-<job_id>-v1.html` (anthropic only)
 - 📝 Notes: `workspace/assets/images/<date>/<job_id>/notes.md`
 - 🖼️ Caption ideas (optional)
+
+---
+
+## Aspect Ratio → Pixel Dimensions
+
+| Ratio | Dimensions | Use case |
+|-------|-----------|---------|
+| `1:1`  | 1080×1080 | Square feed posts |
+| `4:5`  | 1080×1350 | Instagram feed (recommended) |
+| `9:16` | 1080×1920 | Stories / Reels (vertical) |
+| `16:9` | 1920×1080 | Landscape / thumbnails |
 
 ---
 
@@ -130,25 +175,28 @@ Report to user:
 | Unwanted decorations      | Add "no borders, no frames, no badges, no extra icons"               |
 | Generic/stock look        | Add concrete style cues (lighting, material, texture, setting)       |
 | Wrong aspect ratio        | State ratio first in prompt; verify --ratio flag matches             |
+| HTML renders off-canvas   | Edit the HTML file to fix layout, re-run with --version v2           |
 
 ---
 
 ## Error Reference
 
-| Situation                    | Fix                                                    |
-|------------------------------|--------------------------------------------------------|
-| `nano-banana-pro not found`  | Check container PATH; skill is bundled with OpenClaw   |
-| Brand kit not found          | Warning only — continue without brand constraints      |
-| Output directory not found   | Script creates it automatically                        |
-| Review gate fails after v5   | Reduce concept complexity; remove text requirement     |
+| Situation                              | Fix                                                              |
+|----------------------------------------|------------------------------------------------------------------|
+| `ANTHROPIC_API_KEY is not set`         | Add `ANTHROPIC_API_KEY=sk-ant-...` to `.env`                    |
+| `Chromium screenshot failed`           | Check `BROWSER_URL`; verify browser container is running         |
+| `Claude did not return valid HTML`     | Retry; simplify the prompt                                       |
+| `nano-banana-pro not found`            | Check container PATH; skill is bundled with OpenClaw             |
+| Brand kit not found                    | Warning only — continues without brand constraints               |
+| Output directory not found             | Script creates it automatically                                  |
 
 ---
 
 ## Notes / Limits
 
-- Aspect ratios: 1:1 (feed), 4:5 (feed recommended), 9:16 (stories/reels), 16:9 (landscape/thumbnail)
-- Default: 1:1
+- Default provider: `anthropic` (Claude + Chromium)
 - Never add logos or brand names unless the brief explicitly allows it
-- For video thumbnails: use 16:9
+- For video thumbnails: use `16:9`
 - The agent builds the prompt; the script handles generation and file I/O
 - All outputs go to `workspace/assets/images/<date>/<job_id>/`
+- The `anthropic` provider saves HTML alongside the PNG — useful for debugging and iteration
