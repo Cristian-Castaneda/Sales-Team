@@ -16,7 +16,8 @@
 
 import { parseArgs, requireArg, optionalArg, readWorkspaceFile, getImageDir, getToday } from "./lib/workspace.ts";
 import { spawnSync } from "child_process";
-import { join, existsSync } from "fs";
+import { join } from "path";
+import { existsSync } from "fs";
 
 const args = parseArgs(process.argv);
 
