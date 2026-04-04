@@ -1,0 +1,7 @@
+{
+  "name": "image-builder-scripts",
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest"
+  }
+}
