@@ -9,7 +9,7 @@ This is the minimal step-by-step blueprint to get a **private OpenClaw server** 
 - OpenRouter as main model
 - Anthropic API and OpenAI API also configured
 - GitHub access via SSH key (.pem / private key)
-- `.env` file for secrets (created manually on VPS, never committed to the repo)
+- **Doppler** for secrets (no `.env` file on disk — secrets injected at runtime)
 - All config and Docker files versioned in the **Sales-Team** repo and pulled to the VPS during setup
 
 ---
@@ -68,9 +68,9 @@ This is the minimal step-by-step blueprint to get a **private OpenClaw server** 
     |           +-- daily_5_posts.md
     |
     +-- openclaw-deploy/                     <- Live deployment (Docker runs here)
-        +-- .env                                 API keys and secrets (NEVER in repo)
         +-- Dockerfile                           Copied from Sales-Team/docker/
         +-- docker-compose.yml                   Copied from Sales-Team/docker/
+        (no .env — secrets come from Doppler at runtime)
 ```
 
 ## Repo structure (Sales-Team)
@@ -94,11 +94,11 @@ Sales-Team/
 │   └── skill-builder/             # Meta-skill that generates new OpenClaw skills
 │       ├── SKILL.md               # Skill instructions (read by OpenClaw at runtime)
 │       └── scripts/               # TypeScript scripts (run by Bun, no build step)
-├── .gitignore                     # Must include .env
+├── .gitignore                     # Must include .env (kept as safety net)
 └── ...                            # Your other project files
 ```
 
-> **The `.env` file is never committed.** It is created manually on the VPS and referenced by Docker Compose from the deploy directory.
+> **Secrets are never stored on disk.** They live in Doppler and are injected at runtime via `doppler run -- docker compose ...`. No `.env` file is created or needed on the VPS.
 
 ---
 
@@ -316,28 +316,94 @@ OpenClaw supports model refs in `provider/model` format. OpenRouter model refs c
 
 ---
 
-## 8) Create the secrets file on the VPS
+## 8) Set up Doppler for secrets management
 
-This file is **never committed to the repo**. Create it manually:
+Doppler replaces the `.env` file entirely. Secrets live in Doppler's cloud and are injected into the Docker process at runtime — nothing is stored on disk.
+
+> **Why this approach?** You already use Doppler in GitHub Actions for another project. The same service token pattern applies here — generate a token in Doppler, configure the CLI on the VPS with it, and run containers with `doppler run --`.
+
+---
+
+### 8a) Create the Doppler project and environment
+
+Go to [dashboard.doppler.com](https://dashboard.doppler.com) and:
+
+1. Click **Create Project** → name it `sales-team`
+2. Inside the project, you'll see three default environments: `dev`, `stg`, `prd`
+3. Open **`prd`** (production) — this is the one the VPS will use
+
+> You can rename or add environments, but `prd` is a good fit for the live VPS.
+
+---
+
+### 8b) Add your secrets to Doppler
+
+Inside the `prd` environment, add these secrets (click **+ Add Secret** for each):
+
+| Secret name | Value |
+|---|---|
+| `OPENROUTER_API_KEY` | Your OpenRouter key |
+| `ANTHROPIC_API_KEY` | Your Anthropic key (`sk-ant-...`) |
+| `OPENCLAW_GATEWAY_TOKEN` | A long random secret (generate with: `openssl rand -hex 32`) |
+| `TELEGRAM_BOT_TOKEN` | Your Telegram bot token from BotFather |
+| `GITHUB_REPO_SSH` | `git@github.com:Cristian-Castaneda/Sales-Team.git` |
+
+> `OPENAI_API_KEY` is no longer needed — the image builder now uses Anthropic.
+
+---
+
+### 8c) Generate a service token for the VPS
+
+This is the same credential pattern you already use in GitHub Actions.
+
+In the Doppler dashboard:
+
+1. Go to **`sales-team`** project → **`prd`** environment
+2. Click **Access** tab → **Service Tokens**
+3. Click **+ Generate** → name it `openclaw-vps` → set expiry to **No expiry** (or your preferred rotation policy)
+4. Copy the token — it starts with `dp.st.`
+
+> **One token per environment per use case.** Keep the VPS token separate from your GitHub Actions token so you can revoke one without affecting the other.
+
+---
+
+### 8d) Install the Doppler CLI on the VPS
+
+SSH into the VPS, then:
 
 ```bash
-mkdir -p /opt/openclaw-deploy
-cd /opt/openclaw-deploy
-nano .env
+curl -Ls https://cli.doppler.com/install.sh | sh
+doppler --version
 ```
 
-Put this inside:
+---
 
-```env
-OPENROUTER_API_KEY=YOUR_OPENROUTER_KEY
-ANTHROPIC_API_KEY=YOUR_ANTHROPIC_KEY
-OPENAI_API_KEY=YOUR_OPENAI_KEY
+### 8e) Configure the CLI with your service token
 
-OPENCLAW_GATEWAY_TOKEN=PUT_A_LONG_RANDOM_SECRET_HERE
+Scope the token to the deploy directory so `doppler run` always picks up the right project and environment automatically:
 
-TELEGRAM_BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN
+```bash
+# Create the deploy directory if it doesn't exist yet
+mkdir -p /opt/openclaw-deploy
 
-GITHUB_REPO_SSH=git@github.com:Cristian-Castaneda/Sales-Team.git
+# Bind the service token to that directory
+doppler configure set token dp.st.YOUR_TOKEN_HERE --scope /opt/openclaw-deploy
+
+# Confirm it works — should print all your secrets
+cd /opt/openclaw-deploy
+doppler secrets
+```
+
+> The `--scope` flag writes a `.doppler.yaml` file in `/opt/openclaw-deploy` that pins the project (`sales-team`) and environment (`prd`) to that directory. Any `doppler run` command executed inside that directory will automatically use this configuration — no flags needed.
+
+---
+
+### 8f) Verify secret injection
+
+```bash
+cd /opt/openclaw-deploy
+doppler run -- printenv | grep ANTHROPIC
+# Should print: ANTHROPIC_API_KEY=sk-ant-...
 ```
 
 ---
@@ -368,12 +434,16 @@ Both containers bind their ports to `127.0.0.1` only, meaning the services are *
 
 ## 10) Start the containers
 
+Always start containers via `doppler run` so secrets are injected into the environment:
+
 ```bash
 cd /opt/openclaw-deploy
-docker compose up -d --build
+doppler run -- docker compose up -d --build
 docker compose ps
 docker compose logs -f
 ```
+
+> `doppler run --` wraps the command and injects all `prd` secrets as environment variables before Docker Compose starts. The `--` separator is required — it tells the shell that everything after it is the command to run, not a Doppler flag.
 
 At this point:
 - OpenClaw should be running (with Bun baked in for TypeScript skills)
@@ -441,13 +511,12 @@ In `config/openclaw.json`, replace `YOUR_TELEGRAM_CHAT_ID` with your numeric use
 
 Commit and push, then run `deploy-pull` on the VPS to apply.
 
-### 12c) Add the bot token to the VPS .env
+### 12c) Add the bot token to Doppler
 
-Make sure `/opt/openclaw-deploy/.env` has:
+The `TELEGRAM_BOT_TOKEN` should already be in Doppler from step 8b. If not, add it now:
 
-```env
-TELEGRAM_BOT_TOKEN=your_bot_token_here
-```
+1. Go to [dashboard.doppler.com](https://dashboard.doppler.com) → `sales-team` → `prd`
+2. Add `TELEGRAM_BOT_TOKEN` = your bot token
 
 (The bot token comes from [@BotFather](https://t.me/BotFather) on Telegram — `/newbot` to create one, or `/mybots` if you already have it.)
 
@@ -545,10 +614,12 @@ cp docker/docker-compose.yml /opt/openclaw-deploy/docker-compose.yml
 # Redeploy skills
 cp -r skills/* ~/.openclaw/skills/
 
-# Rebuild and restart
+# Rebuild and restart (via Doppler so secrets are injected)
 cd /opt/openclaw-deploy
-docker compose up -d --build
+doppler run -- docker compose up -d --build
 ```
+
+> **Secrets change?** Update them directly in the Doppler dashboard — no SSH needed, no VPS access. They are picked up automatically on the next `doppler run` invocation.
 
 This way you never lose your config changes — everything is versioned.
 
@@ -564,8 +635,9 @@ You are done with the base system when all of this is true:
 - OpenClaw can answer
 - WhatsApp is paired
 - Your repo clones via Git SSH
+- `doppler secrets` shows all keys in `/opt/openclaw-deploy`
 - OpenRouter key is working
-- Anthropic and OpenAI keys are stored as fallbacks
+- Anthropic API key is injected and working
 - `skill-builder` shows as eligible in `openclaw skills list --eligible`
 
 ---
