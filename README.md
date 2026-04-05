@@ -84,6 +84,7 @@ Sales-Team/
 │   └── docker-compose.yml         # Docker Compose for OpenClaw + headless Chrome
 ├── config/
 │   └── openclaw.json              # OpenClaw configuration (models, browser, channels)
+    
 ├── workspace/
 │   ├── IDENTITY.md                # Agent identity card (name, emoji, greeting)
 │   ├── SOUL.md                    # Personality, tone, red lines
@@ -348,7 +349,6 @@ Inside the `prd` environment, add these secrets (click **+ Add Secret** for each
 | `TELEGRAM_BOT_TOKEN` | Your Telegram bot token from BotFather |
 | `GITHUB_REPO_SSH` | `git@github.com:Cristian-Castaneda/Sales-Team.git` |
 
-> `OPENAI_API_KEY` is no longer needed — the image builder now uses Anthropic.
 
 ---
 
