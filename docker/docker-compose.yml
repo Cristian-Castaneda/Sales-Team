@@ -5,8 +5,14 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     user: "0:0"
-    # Secrets are injected by Doppler at runtime via: doppler run -- docker compose up -d
-    # Do NOT add env_file here — no .env file on disk.
+    # Secrets injected by Doppler: `doppler run -- docker compose up -d`
+    # Empty values (VAR_NAME:) mean "inherit from the process environment that doppler run populated".
+    environment:
+      ANTHROPIC_API_KEY:
+      OPENROUTER_API_KEY:
+      OPENCLAW_GATEWAY_TOKEN:
+      TELEGRAM_BOT_TOKEN:
+      GITHUB_REPO_SSH:
     volumes:
       - /root/.openclaw:/root/.openclaw
       - /root/.openclaw:/home/node/.openclaw
