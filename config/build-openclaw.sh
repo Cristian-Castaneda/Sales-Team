@@ -64,6 +64,7 @@ else
 fi
 
 echo "==> Rebuilding and restarting containers..."
+echo "==> Using Doppler to inject secrets at runtime. Make sure your Doppler project is configured correctly."
 cd "$DEPLOY"
 docker compose down
 # doppler run injects all secrets from Doppler before starting the containers
