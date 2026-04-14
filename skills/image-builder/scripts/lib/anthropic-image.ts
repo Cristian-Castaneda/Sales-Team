@@ -105,6 +105,11 @@ export async function renderHtmlToImage(
 
   const body = JSON.stringify({
     html,
+    viewport: {
+      width: dims.width,
+      height: dims.height,
+      deviceScaleFactor: 1,
+    },
     options: {
       type: "png",
       clip: {
@@ -112,7 +117,6 @@ export async function renderHtmlToImage(
         y: 0,
         width: dims.width,
         height: dims.height,
-        scale: 1,
       },
     },
   });

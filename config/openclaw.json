@@ -28,7 +28,7 @@
     "enabled": true,
     "profiles": {
       "default": {
-        "cdpUrl": "http://browser:3000",
+        "cdpUrl": "ws://browser:3000",
         "color": "#00FF00"
       }
     }
